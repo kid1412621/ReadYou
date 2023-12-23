@@ -176,18 +176,18 @@ class FeverRssService @Inject constructor(
             }
 
             // 4. Synchronize read/unread and starred/un-starred
-            val unreadArticleIds = feverAPI.getUnreadItems().unread_item_ids?.split(",")
-            val starredArticleIds = feverAPI.getSavedItems().saved_item_ids?.split(",")
+            val unreadArticleIds = feverAPI.getUnreadItems().unread_item_ids?.split(",")?.toSet() ?: emptySet()
+            val starredArticleIds = feverAPI.getSavedItems().saved_item_ids?.split(",")?.toSet() ?: emptySet()
             val articleMeta = articleDao.queryArticleMetadataAll(accountId)
             for (meta: ArticleMeta in articleMeta) {
                 val articleId = meta.id.dollarLast()
-                val shouldBeUnread = unreadArticleIds?.contains(articleId)
-                val shouldBeStarred = starredArticleIds?.contains(articleId)
+                val shouldBeUnread = unreadArticleIds.contains(articleId)
+                val shouldBeStarred = starredArticleIds.contains(articleId)
                 if (meta.isUnread != shouldBeUnread) {
-                    articleDao.markAsReadByArticleId(accountId, meta.id, shouldBeUnread ?: true)
+                    articleDao.markAsReadByArticleId(accountId, meta.id, shouldBeUnread)
                 }
                 if (meta.isStarred != shouldBeStarred) {
-                    articleDao.markAsStarredByArticleId(accountId, meta.id, shouldBeStarred ?: false)
+                    articleDao.markAsStarredByArticleId(accountId, meta.id, shouldBeStarred)
                 }
             }
 
