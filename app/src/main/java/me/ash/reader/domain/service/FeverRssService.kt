@@ -142,6 +142,16 @@ class FeverRssService @Inject constructor(
                 } ?: emptyList()
             )
 
+            // remove unsubscribed feeds
+            feedsBody.feeds?.map { it.id.toString() }!!.toSet().takeIf { it.isNotEmpty() }
+                ?.let { feeds ->
+                    feedDao.queryAll(context.currentAccountId).forEach { existed ->
+                        if (!feeds.contains(existed.id.dollarLast())) {
+                            feedDao.delete(existed)
+                        }
+                    }
+                }
+
             // 3. Fetch the Fever articles (up to unlimited counts)
             var sinceId = account.lastArticleId?.dollarLast() ?: ""
             var itemsBody = feverAPI.getItemsSince(sinceId)
